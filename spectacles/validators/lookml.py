@@ -2,6 +2,7 @@ from typing import Any, Dict, Optional
 
 from spectacles.client import LOOKML_VALIDATION_TIMEOUT, LookerClient
 from spectacles.exceptions import LookMLError
+from spectacles.logger import GLOBAL_LOGGER as logger
 
 # Define constants for severity levels
 SUCCESS = 0
@@ -38,9 +39,10 @@ class LookMLValidator:
         timeout: int = LOOKML_VALIDATION_TIMEOUT,
     ) -> Dict[str, Any]:
         severity_level: int = NAME_TO_LEVEL[severity]
-        validation_results = await self.client.cached_lookml_validation(project)
-        if not validation_results or validation_results.get("stale"):
-            validation_results = await self.client.lookml_validation(project, timeout)
+        # Skip cache check - it can hang when switching branches or after reset
+        # Go directly to POST validation to ensure we get fresh results
+        logger.debug(f"Validating LookML for project '{project}' (skipping cache)")
+        validation_results = await self.client.lookml_validation(project, timeout)
         errors = []
         lookml_url: Optional[str] = None
         for error in validation_results["errors"]:
