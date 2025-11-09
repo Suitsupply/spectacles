@@ -117,7 +117,16 @@ class LookerBranchManager:
                 if not self.use_personal_branch:
                     self.branch = new_branch
             else:
-                await self.client.checkout_branch(self.project, self.branch)
+                # Check if we're already on the target branch to avoid checkout conflicts
+                current_branch_info = await self.client.get_active_branch(self.project)
+                current_branch = current_branch_info["name"]
+                
+                if current_branch == self.branch:
+                    logger.debug(f"Already on branch '{self.branch}', skipping checkout")
+                else:
+                    logger.debug(f"Switching from '{current_branch}' to '{self.branch}'")
+                    await self.client.checkout_branch(self.project, self.branch)
+                
                 if self.remote_reset:
                     await self.client.reset_to_remote(self.project)
         # A commit was passed, so we non-destructively create a temporary branch we can
