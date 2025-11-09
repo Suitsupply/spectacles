@@ -125,11 +125,6 @@ class LookerBranchManager:
                 
                 # Checkout target branch (now succeeds even if there were uncommitted changes)
                 await self.client.checkout_branch(self.project, self.branch)
-                
-                if self.remote_reset:
-                    # Reset target branch to ensure it's clean too
-                    logger.debug(f"Resetting branch '{self.branch}' after checkout")
-                    await self.client.reset_to_remote(self.project)
         # A commit was passed, so we non-destructively create a temporary branch we can
         # hard reset to the commit.
         elif self.commit:
